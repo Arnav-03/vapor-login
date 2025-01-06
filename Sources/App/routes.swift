@@ -1,5 +1,11 @@
 import Vapor
 
+// Define the Credentials struct outside the route handler
+struct Credentials: Content {
+    let username: String
+    let password: String
+}
+
 func routes(_ app: Application) throws {
     // Store the latest credentials in memory
     var latestCredentials: Credentials?
@@ -7,16 +13,13 @@ func routes(_ app: Application) throws {
     // Define a POST route to accept credentials
     app.post("credentials") { req -> HTTPStatus in
         // Decode the credentials from the request body
-        struct Credentials: Content {
-            let username: String
-            let password: String
-        }
-
-        // Decode and save the received credentials
-        latestCredentials = try req.content.decode(Credentials.self)
+        let credentials = try req.content.decode(Credentials.self)
+        
+        // Save the received credentials
+        latestCredentials = credentials
         print("Received Credentials:")
-        print("Username: \(latestCredentials?.username ?? "N/A")")
-        print("Password: \(latestCredentials?.password ?? "N/A")")
+        print("Username: \(credentials.username)")
+        print("Password: \(credentials.password)")
 
         return .ok
     }
