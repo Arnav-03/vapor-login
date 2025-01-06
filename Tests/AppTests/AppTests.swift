@@ -70,6 +70,7 @@ struct AppTests {
                 #expect(res.status == .noContent)
                 let model = try await Todo.find(testTodos[0].id, on: app.db)
                 #expect(model == nil)
+        
             })
         }
     }
@@ -80,3 +81,6 @@ extension TodoDTO: Equatable {
         lhs.id == rhs.id && lhs.title == rhs.title
     }
 }
+
+
+
