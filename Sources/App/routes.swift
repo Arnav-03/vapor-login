@@ -43,18 +43,36 @@ func routes(_ app: Application) throws {
         }
     }
 
-    app.on(.POST, "process-video") { req -> String in
-        // Attempt to get the body content as a string (form data)
-        guard let body = req.body.string else {
-            throw Abort(.badRequest, reason: "No formData provided.")
+     // Define the POST route to process the video
+    app.on(.POST, "process-video") { req -> HTTPStatus in
+        // Attempt to extract the video from the form data
+        guard let video = req.body.formData?.first(where: { $0.name == "video" }) else {
+            throw Abort(.badRequest, reason: "No video file found in form data.")
         }
-        print("Received Form Data:")
-        print(body)
 
+        // Create a directory to store the video (if it doesn't exist)
+        let fileManager = FileManager.default
+        let directory = app.directory.workingDirectory + "processed-videos"
+        if !fileManager.fileExists(atPath: directory) {
+            try fileManager.createDirectory(atPath: directory, withIntermediateDirectories: true, attributes: nil)
+        }
 
-        // Return the form data as a string in the response
-        return body
+        // Generate a unique filename for the uploaded video
+        let filename = UUID().uuidString + ".mp4"
+        let filePath = directory + "/" + filename
+
+        // Save the video to the server
+        try video.data.write(to: URL(fileURLWithPath: filePath))
+
+        print("Video saved at: \(filePath)")
+
+        // Return the download link for the saved video
+        let downloadLink = "http://localhost:8080/processed-videos/\(filename)"
+        print("Download link: \(downloadLink)")
+
+        return downloadLink
     }
+
 }
 
 func configure(_ app: Application) throws {
