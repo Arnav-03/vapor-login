@@ -7,6 +7,11 @@ struct Credentials: Content {
 }
 
 func routes(_ app: Application) throws {
+    // Define the root route to display a custom message
+    app.get { req in
+        return "Hello to Vapor server"
+    }
+
     // Store the latest credentials in memory
     var latestCredentials: Credentials?
 
@@ -17,9 +22,9 @@ func routes(_ app: Application) throws {
         
         // Save the received credentials
         latestCredentials = credentials
-        print("Received Credentials:")
-        print("Username: \(credentials.username)")
-        print("Password: \(credentials.password)")
+        print("Received Credentials are:")
+        print("Hello : \(credentials.username)")
+        print("Your Password: \(credentials.password)")
 
         return .ok
     }
@@ -37,4 +42,16 @@ func routes(_ app: Application) throws {
             return "No credentials found yet."
         }
     }
+}
+
+func configure(_ app: Application) throws {
+    // Enable CORS middleware with open policy
+    app.middleware.use(CORSMiddleware(configuration: .init(
+        allowedOrigin: .all, // Allow all origins
+        allowedMethods: [.GET, .POST, .OPTIONS, .PUT, .DELETE], // Allow common methods
+        allowedHeaders: [.accept, .authorization, .contentType, .origin, .xRequestedWith]
+    )))
+    
+    // Register routes
+    try routes(app)
 }
