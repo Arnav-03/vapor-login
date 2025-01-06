@@ -42,15 +42,44 @@ func routes(_ app: Application) throws {
             return "No credentials found yet."
         }
     }
+
+    app.on(.POST, "process-video") { req -> String in
+        // Attempt to get the body content as a string (form data)
+        guard let body = req.body.string else {
+            throw Abort(.badRequest, reason: "No formData provided.")
+        }
+        print("Received Form Data:")
+        print(body)
+
+
+        // Return the form data as a string in the response
+        return body
+    }
 }
 
 func configure(_ app: Application) throws {
-    // Enable CORS middleware with open policy
-    app.middleware.use(CORSMiddleware(configuration: .init(
-        allowedOrigin: .all, // Allow all origins
-        allowedMethods: [.GET, .POST, .OPTIONS, .PUT, .DELETE], // Allow common methods
-        allowedHeaders: [.accept, .authorization, .contentType, .origin, .xRequestedWith]
-    )))
+    // Enable CORS middleware with specific configuration
+    let corsConfiguration = CORSMiddleware.Configuration(
+        allowedOrigin: .originBased, // This will mirror the request origin
+        allowedMethods: [.GET, .POST, .PUT, .OPTIONS, .DELETE, .PATCH],
+        allowedHeaders: [
+            .accept,
+            .authorization,
+            .contentType,
+            .origin,
+            .xRequestedWith,
+            .userAgent,
+            .accessControlAllowOrigin,
+            .accessControlAllowHeaders
+        ],
+        allowCredentials: true,
+        exposedHeaders: [
+            .accessControlAllowOrigin,
+            .accessControlAllowHeaders
+        ]
+    )
+    
+    app.middleware.use(CORSMiddleware(configuration: corsConfiguration))
     
     // Register routes
     try routes(app)
